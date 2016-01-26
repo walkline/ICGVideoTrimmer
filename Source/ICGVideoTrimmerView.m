@@ -76,7 +76,7 @@
 
 - (void)resetSubviews
 {
-    [self setBackgroundColor:[UIColor blackColor]];
+    [self setBackgroundColor:[UIColor clearColor]];
 
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
@@ -98,7 +98,8 @@
     
     if (self.showsRulerView) {
         CGRect rulerFrame = CGRectMake(0, CGRectGetHeight(self.contentView.frame)*0.7, CGRectGetWidth(self.contentView.frame)+self.thumbWidth, CGRectGetHeight(self.contentView.frame)*0.3);
-        ICGRulerView *rulerView = [[ICGRulerView alloc] initWithFrame:rulerFrame widthPerSecond:self.widthPerSecond themeColor:self.themeColor];
+        ICGRulerView *rulerView = [[ICGRulerView alloc] initWithFrame:rulerFrame widthPerSecond:self.widthPerSecond themeColor:self.rulerColor];
+        rulerView.backgroundColor = [UIColor clearColor];
         [self.contentView addSubview:rulerView];
     }
     
@@ -123,7 +124,7 @@
         self.leftThumbView = [[ICGThumbView alloc] initWithFrame:leftThumbFrame color:self.themeColor right:NO];
     }
     
-    self.trackerView = [[UIView alloc] initWithFrame:CGRectMake(self.thumbWidth, -5, 3, CGRectGetHeight(self.frameView.frame) + 10)];
+    self.trackerView = [[UIView alloc] initWithFrame:CGRectMake(self.thumbWidth, -5, 4, CGRectGetHeight(self.frameView.frame) + 10)];
     self.trackerView.backgroundColor = self.trackerColor ? self.trackerColor : [UIColor whiteColor];
     self.trackerView.layer.masksToBounds = true;
     self.trackerView.layer.cornerRadius = 2;
@@ -134,7 +135,7 @@
     [self.leftOverlayView setUserInteractionEnabled:YES];
     UIPanGestureRecognizer *leftPanGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveLeftOverlayView:)];
     [self.leftOverlayView addGestureRecognizer:leftPanGestureRecognizer];
-    [self.leftOverlayView setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.8]];
+    [self.leftOverlayView setBackgroundColor:[UIColor clearColor]];//[UIColor colorWithWhite:0 alpha:0.4]];
     [self addSubview:self.leftOverlayView];
 
     // add right overlay view
@@ -150,7 +151,7 @@
     [self.rightOverlayView setUserInteractionEnabled:YES];
     UIPanGestureRecognizer *rightPanGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveRightOverlayView:)];
     [self.rightOverlayView addGestureRecognizer:rightPanGestureRecognizer];
-    [self.rightOverlayView setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.8]];
+    [self.rightOverlayView setBackgroundColor:[UIColor clearColor]];//[UIColor colorWithWhite:0 alpha:0.4]];
     [self addSubview:self.rightOverlayView];
     
     [self updateBorderFrames];

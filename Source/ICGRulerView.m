@@ -47,7 +47,7 @@
         if (step % multiple == 0) {
             CGContextFillRect(context, CGRectMake(x, majorY, 1.75, majorTickLength));
             
-            UIFont *font = [UIFont systemFontOfSize:11];
+            UIFont *font = [UIFont fontWithName:@"Lato-Bold" size:13];
             UIColor *textColor = self.themeColor;
             NSDictionary *stringAttrs = @{NSFontAttributeName:font, NSForegroundColorAttributeName:textColor};
             

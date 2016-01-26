@@ -65,10 +65,10 @@
         [roundedRectanglePath fill];
         
         
-        CGRect decoratingRect = CGRectMake(CGRectGetMinX(bubbleFrame)+CGRectGetWidth(bubbleFrame)/2.5, CGRectGetMinY(bubbleFrame)+CGRectGetHeight(bubbleFrame)/4, 1.5, CGRectGetHeight(bubbleFrame)/2);
+        CGRect decoratingRect = CGRectMake(CGRectGetMinX(bubbleFrame)+CGRectGetWidth(bubbleFrame)/2.5, 5, 1.5, CGRectGetHeight(bubbleFrame) - 10);
         UIBezierPath *decoratingPath = [UIBezierPath bezierPathWithRoundedRect:decoratingRect byRoundingCorners: UIRectCornerTopLeft | UIRectCornerBottomLeft | UIRectCornerBottomRight | UIRectCornerTopRight cornerRadii: CGSizeMake(1, 1)];
         [decoratingPath closePath];
-        [[UIColor colorWithWhite:1 alpha:0.5] setFill];
+        [[UIColor colorWithWhite:0 alpha:0.2] setFill];
         [decoratingPath fill];
 
     }
