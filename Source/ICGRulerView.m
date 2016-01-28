@@ -45,7 +45,7 @@
         
         CGContextSetFillColorWithColor(context, self.themeColor.CGColor);
         if (step % multiple == 0) {
-            CGContextFillRect(context, CGRectMake(x, majorY, 1.75, majorTickLength));
+            CGContextFillRect(context, CGRectMake(x, majorY, 1.0, majorTickLength));
             
             UIFont *font = [UIFont fontWithName:@"Lato-Bold" size:13];
             UIColor *textColor = self.themeColor;
@@ -63,7 +63,7 @@
                 attrStr = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@":%02ld", (long) seconds] attributes:stringAttrs];
             }
             
-            [attrStr drawAtPoint:CGPointMake(x-7, majorY - 15)];
+            [attrStr drawAtPoint:CGPointMake(x-7, majorY - 16)];
             
             
         } else {

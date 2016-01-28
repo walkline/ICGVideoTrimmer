@@ -22,6 +22,9 @@
 @property (strong, nonatomic) ICGThumbView *leftThumbView;
 @property (strong, nonatomic) ICGThumbView *rightThumbView;
 
+@property (strong, nonatomic) UIView * leftAlphaOverlay;
+@property (strong, nonatomic) UIView * rightAlphaOverlay;
+
 @property (strong, nonatomic) UIView *trackerView;
 @property (strong, nonatomic) UIView *topBorder;
 @property (strong, nonatomic) UIView *bottomBorder;
@@ -34,6 +37,8 @@
 @property (nonatomic) CGPoint leftStartPoint;
 @property (nonatomic) CGPoint rightStartPoint;
 @property (nonatomic) CGFloat overlayWidth;
+@property (nonatomic) CGFloat lastWidth;
+
 
 @end
 
@@ -51,6 +56,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         _asset = asset;
+        self.overlayColor = [UIColor colorWithWhite:0 alpha:0.5];
         [self resetSubviews];
     }
     return self;
@@ -76,8 +82,10 @@
 
 - (void)resetSubviews
 {
+    CGPoint leftCenterPoint = self.leftOverlayView.center;
+    CGPoint rightCenterPoint = self.rightOverlayView.center;
+    
     [self setBackgroundColor:[UIColor clearColor]];
-
     [self.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame))];
@@ -129,13 +137,22 @@
     self.trackerView.layer.masksToBounds = true;
     self.trackerView.layer.cornerRadius = 2;
     [self addSubview:self.trackerView];
+    
+    self.leftAlphaOverlay = [[UIView alloc] initWithFrame:self.leftOverlayView.frame];
+    [self addSubview:self.leftAlphaOverlay];
+    
+    self.leftAlphaOverlay.backgroundColor = self.overlayColor;
+    
+    self.rightAlphaOverlay = [[UIView alloc] initWithFrame:self.leftOverlayView.frame];
+    [self addSubview:self.rightAlphaOverlay];
+    self.rightAlphaOverlay.backgroundColor = self.overlayColor;
 
     [self.leftThumbView.layer setMasksToBounds:YES];
     [self.leftOverlayView addSubview:self.leftThumbView];
     [self.leftOverlayView setUserInteractionEnabled:YES];
     UIPanGestureRecognizer *leftPanGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveLeftOverlayView:)];
     [self.leftOverlayView addGestureRecognizer:leftPanGestureRecognizer];
-    [self.leftOverlayView setBackgroundColor:[UIColor clearColor]];//[UIColor colorWithWhite:0 alpha:0.4]];
+    [self.leftOverlayView setBackgroundColor:[UIColor clearColor]];
     [self addSubview:self.leftOverlayView];
 
     // add right overlay view
@@ -151,11 +168,23 @@
     [self.rightOverlayView setUserInteractionEnabled:YES];
     UIPanGestureRecognizer *rightPanGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveRightOverlayView:)];
     [self.rightOverlayView addGestureRecognizer:rightPanGestureRecognizer];
-    [self.rightOverlayView setBackgroundColor:[UIColor clearColor]];//[UIColor colorWithWhite:0 alpha:0.4]];
+    [self.rightOverlayView setBackgroundColor:[UIColor clearColor]];
     [self addSubview:self.rightOverlayView];
+    
+    if (self.lastWidth) {
+        CGFloat scale = self.frame.size.width / self.lastWidth;
+        
+        leftCenterPoint.x *= scale;
+        rightCenterPoint.x *= scale;
+        
+        self.leftOverlayView.center = leftCenterPoint;
+        self.rightOverlayView.center = rightCenterPoint;
+    }
     
     [self updateBorderFrames];
     [self notifyDelegate];
+    
+    self.lastWidth = self.frame.size.width;
 }
 
 - (void)updateBorderFrames
@@ -163,6 +192,27 @@
     CGFloat height = self.borderWidth ? self.borderWidth : 1;
     [self.topBorder setFrame:CGRectMake(CGRectGetMaxX(self.leftOverlayView.frame), 0, CGRectGetMinX(self.rightOverlayView.frame)-CGRectGetMaxX(self.leftOverlayView.frame), height)];
     [self.bottomBorder setFrame:CGRectMake(CGRectGetMaxX(self.leftOverlayView.frame), CGRectGetHeight(self.frameView.frame)-height, CGRectGetMinX(self.rightOverlayView.frame)-CGRectGetMaxX(self.leftOverlayView.frame), height)];
+    
+    [self updateAlphaOverlays];
+}
+
+- (void)updateAlphaOverlays
+{
+    CGRect frame = self.leftAlphaOverlay.frame;
+    frame.size.width = self.bottomBorder.frame.origin.x - self.thumbWidth;
+    frame.origin.x = self.thumbWidth;
+    self.leftAlphaOverlay.frame = frame;
+    
+    CGFloat maxWidth = CMTimeGetSeconds([self.asset duration]) <= self.maxLength + 0.5 ? CGRectGetMaxX(self.frameView.frame) : CGRectGetWidth(self.frame);
+    frame = self.rightAlphaOverlay.frame;
+    frame.size.width = maxWidth - (self.bottomBorder.frame.size.width + self.bottomBorder.frame.origin.x) - self.thumbWidth;
+    
+    if (frame.size.width > maxWidth) {
+        frame.size.width = maxWidth;
+    }
+    
+    frame.origin.x = maxWidth - frame.size.width;
+    self.rightAlphaOverlay.frame = frame;
 }
 
 - (void)moveLeftOverlayView:(UIPanGestureRecognizer *)gesture
@@ -174,12 +224,11 @@
         case UIGestureRecognizerStateChanged:
         {
             CGPoint point = [gesture locationInView:self];
-            
             int deltaX = point.x - self.leftStartPoint.x;
             
             CGPoint center = self.leftOverlayView.center;
             
-            CGFloat newLeftViewMidX = center.x += deltaX;;
+            CGFloat newLeftViewMidX = center.x += deltaX;
             CGFloat maxWidth = CGRectGetMinX(self.rightOverlayView.frame) - (self.minLength * self.widthPerSecond);
             CGFloat newLeftViewMinX = newLeftViewMidX - self.overlayWidth/2;
             if (newLeftViewMinX < self.thumbWidth - self.overlayWidth) {
@@ -192,15 +241,12 @@
             self.leftStartPoint = point;
             [self updateBorderFrames];
             [self notifyDelegate];
-            
             break;
         }
             
         default:
             break;
     }
-    
-    
 }
 
 - (void)moveRightOverlayView:(UIPanGestureRecognizer *)gesture

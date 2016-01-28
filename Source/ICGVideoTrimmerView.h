@@ -22,6 +22,9 @@
 // Ruller color
 @property (strong, nonatomic) UIColor *rulerColor;
 
+// Overlay color
+@property (strong, nonatomic) UIColor *overlayColor;
+
 // Maximum length for the trimmed video
 @property (assign, nonatomic) CGFloat maxLength;
 
